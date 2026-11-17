@@ -8,10 +8,10 @@ import type { Book } from './finance';
 import { calculateWidgetSnapshot, monthNow } from './widgetHealth';
 
 const files = {
-  happy: require('../assets/widget/happy.jpg'),
-  thoughtful: require('../assets/widget/thoughtful.jpg'),
-  worried: require('../assets/widget/worried.jpg'),
-  panic: require('../assets/widget/panic.jpg'),
+  happy: require('../assets/widget/happy.png'),
+  thoughtful: require('../assets/widget/thoughtful.png'),
+  worried: require('../assets/widget/worried.png'),
+  panic: require('../assets/widget/panic.png'),
 };
 let lastRequested = 0;
 const destinationCache = new Map<string,string>();
@@ -19,12 +19,13 @@ async function mascotUri(mood: keyof typeof files): Promise<string> {
   const saved = destinationCache.get(mood);
   if (saved) return saved;
   if (!widgetsDirectory) return '';
-  const destination = new File(widgetsDirectory, `moneo-widget-${mood}-1111.jpg`);
-  if (!destination.exists) {
+  const destination = new File(widgetsDirectory, `moneo-widget-${mood}-1114.png`);
+  if (!destination.exists || destination.size === 0) {
     const source = await Asset.fromModule(files[mood]).downloadAsync();
     if (!source.localUri) return '';
-    await new File(source.localUri).copy(destination);
+    new File(source.localUri).copy(destination);
   }
+  if (!destination.exists || destination.size <= 0) throw new Error('Asset maskot widget tidak berhasil disalin ke folder bersama');
   destinationCache.set(mood, destination.uri);
   return destination.uri;
 }
@@ -39,5 +40,6 @@ export async function publishWidget(book: Book, showAmounts = true): Promise<voi
   try { uri = await mascotUri(snapshot.mood); }
   catch (error) { console.warn('Gagal menyalin gambar maskot:', error); }
   if (request !== lastRequested) return;
+  // Bundled in-widget image is the last-resort fallback when an OS widget cannot read the shared URI.
   AnaFinanceWidget.updateSnapshot({...snapshot, mascotUri:uri});
 }

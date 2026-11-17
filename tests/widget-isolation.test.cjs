@@ -9,5 +9,5 @@ for(const name of ['AnaFinanceWidget.android.tsx','AnaFinanceWidget.ios.tsx']) {
  for(const ref of ['statusMeta(', 'localMascot[', 'logoAsset'])assert(!inside.includes(ref),`undefined outer reference: ${ref}`);
  for(const label of ['Saldo Total','Pemasukan','Pengeluaran','Aman','Waspada','Hemat','Kritis','mascotUri'])assert(inside.includes(label),`${name} missing ${label}`);
 }
-const app=require('../app.json').expo;assert.equal(app.version,'1.1.11');assert.equal(app.android.versionCode,11);
+const app=require('../app.json').expo;assert.equal(app.version,'1.1.14');assert.equal(app.android.versionCode,14);
 console.log('Widget isolation regression passed');

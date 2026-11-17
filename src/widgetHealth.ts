@@ -2,7 +2,12 @@
 import { Book, allBalances, periodSummary, amountText } from './finance';
 export type WidgetMood = 'happy' | 'thoughtful' | 'worried' | 'panic';
 export type WidgetSnapshot = {
+  /** These are for legacy display mode; masked when showAmounts=false. */
   balanceText: string;
+  /** Always carry the real strings so an interactive eye tap can restore them locally. */
+  balanceFullText: string;
+  incomeFullText: string;
+  expenseFullText: string;
   incomeText: string;
   expenseText: string;
   ratio: number;
@@ -32,6 +37,7 @@ export function calculateWidgetSnapshot(book: Book, period: string, showAmounts 
   const mask = (value: number) => showAmounts ? amountText(value) : 'Rp ••••••';
   return {
     balanceText: mask(balance), incomeText: mask(income), expenseText: mask(expense),
+    balanceFullText: amountText(balance), incomeFullText: amountText(income), expenseFullText: amountText(expense),
     ratio, percent: Math.round(ratio * 100), mood, label, period,
     privateMode: !showAmounts, mascotUri: '',
   };

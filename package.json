@@ -1,6 +1,6 @@
 {
   "name": "moneo-mobile",
-  "version": "1.1.11",
+  "version": "1.1.14",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
@@ -12,7 +12,7 @@
     "expo:doctor": "expo-doctor",
     "test:core": "tsc --target es2020 --module commonjs --allowJs --checkJs false --skipLibCheck --lib es2020,dom --outDir test-build src/finance.ts src/seed.ts src/sampleCleanup.ts src/manage.ts src/ledger.ts src/advanced.js src/widgetHealth.ts && node tests/finance.test.cjs && node tests/manage.test.cjs && node tests/ledger.test.cjs && node tests/advanced.test.cjs && node tests/widget.test.cjs",
     "test:preview": "node tests/preview-state.test.cjs",
-    "test": "npm run test:core && node tests/no-demo-v1110.test.cjs && npm run test:preview && node tests/advanced-web.test.cjs && node tests/widget-web.test.cjs && node tests/brand-migration.test.cjs && node tests/settings-only-data.test.cjs && node tests/clean-home.test.cjs"
+    "test": "npm run test:core && node tests/no-demo-v1110.test.cjs && npm run test:preview && node tests/advanced-web.test.cjs && node tests/widget-web.test.cjs && node tests/brand-migration.test.cjs && node tests/settings-only-data.test.cjs && node tests/clean-home.test.cjs && node tests/widget-isolation.test.cjs && node tests/v113-layout.test.cjs && node tests/v113-goals-web.test.cjs && node tests/v114-eye.test.cjs"
   },
   "dependencies": {
     "expo": "~58.0.25",

@@ -17,6 +17,7 @@ import {
 import { currentPeriod, freshEmptyBook } from './src/seed';
 import { removeOldSampleData } from './src/sampleCleanup';
 import { publishWidget } from './src/publishWidget';
+import { addUserInteractionListener } from 'expo-widgets';
 import { Image as RNImage } from 'react-native';
 import { normalizeLegacyBook, saveAccount, deleteAccount, saveCategory, deleteCategory } from './src/manage';
 import { upsertEntry, backupJson, parseBackup } from './src/ledger';
@@ -34,7 +35,7 @@ const SHADOW = Platform.OS === 'ios'
   ? { shadowColor: '#17183C', shadowOpacity: 0.05, shadowRadius: 18, shadowOffset: { width: 0, height: 7 } }
   : Platform.OS === 'android' ? { elevation: 2 } : {};
 
-type Tab = 'home' | 'budget' | 'activity' | 'insights' | 'advanced';
+type Tab = 'home' | 'budget' | 'activity' | 'insights' | 'advanced' | 'goals';
 type KindFilter = Kind | 'all';
 
 const ICONS: Record<string, { ios: string; android: string; web: string }> = {
@@ -379,6 +380,33 @@ function InsightsScreen({ book, period, privacy, width }: { book: Book; period: 
   </>;
 }
 
+function GoalsScreen({book,privacy,onOpen,onRemove}:{book:Book;privacy:boolean;onOpen:(action:string,selected?:string)=>void;onRemove:(action:string,id:string)=>void}){
+  const goals=(Adv.state(book).goals as any[]);
+  const fmt=(n:number)=>privacy?'Rp •••••':amountText(n);
+  const totalTarget=goals.reduce((n:number,g:any)=>n+Number(g.target||0),0);
+  const totalSaved=goals.reduce((n:number,g:any)=>n+Adv.goalBalance(book,g.id),0);
+  const smallAction=(label:string,onPress:()=>void,danger=false)=><Pressable onPress={onPress} style={{backgroundColor:danger?'#FFF0F3':'#F0ECFF',borderRadius:12,paddingHorizontal:11,paddingVertical:9}}><M size={11} weight="800" color={danger?'#BB4C70':PURPLE}>{label}</M></Pressable>;
+  return <>
+    <View style={{marginTop:4,marginBottom:18}}><M size={27} weight="900">Target tabungan</M><M size={12} color={MUTED} style={{marginTop:7,lineHeight:19}}>Atur tujuan, alokasikan dana, dan lihat kemajuan tanpa mengubah saldo asli.</M></View>
+    <LinearGradient colors={['#483C99','#7665DF']} style={[styles.hero,{minHeight:136,marginBottom:16}]}>
+      <M color="#E5E2FF" weight="800" size={11}>TOTAL DIALOKASIKAN</M>
+      <M color={WHITE} weight="900" size={27} style={{marginTop:10}}>{fmt(totalSaved)}</M>
+      <M color="#F0E9FF" size={11} style={{marginTop:8}}>Dari {fmt(totalTarget)} target · {goals.length} tujuan</M>
+    </LinearGradient>
+    <Pressable style={[styles.primaryButton,{marginTop:2,marginBottom:18}]} onPress={()=>onOpen('goal')}><Ico name="plus" color={WHITE} size={18}/><M weight="800" color={WHITE}>Tambah target tabungan</M></Pressable>
+    {goals.length===0 ? <Panel><Empty text="Belum ada target. Buat tujuan tabungan pertamamu." icon="target"/></Panel> : goals.map((g:any)=>{
+      const saved=Adv.goalBalance(book,g.id),ratio=g.target>0?Math.min(1,saved/g.target):0;
+      return <Panel key={g.id} style={{marginBottom:14}}>
+        <View style={{flexDirection:'row',justifyContent:'space-between',gap:8,alignItems:'center'}}><M size={15} weight="900">{g.name}</M><M size={12} weight="900" color={PURPLE}>{Math.round(ratio*100)}%</M></View>
+        <M size={12} color={MUTED} style={{marginTop:8}}>{fmt(saved)} / {fmt(g.target)}{g.deadline?' · '+g.deadline:''}</M>
+        <View style={{marginVertical:15}}><Progress progress={ratio} color={PURPLE} height={9}/></View>
+        <View style={{flexDirection:'row',gap:7,flexWrap:'wrap'}}>{smallAction('+ Alokasi',()=>onOpen('allocate',g.id))}{smallAction('− Lepas',()=>onOpen('release',g.id))}{smallAction('Edit',()=>onOpen('goalEdit',g.id))}{smallAction('Hapus',()=>onRemove('goal',g.id),true)}</View>
+      </Panel>;
+    })}
+    <M size={11} color={MUTED} style={{lineHeight:17,marginTop:10}}>Dana yang dialokasikan tetap ada di dompet. Angka saldo total tidak berkurang karena alokasi virtual.</M>
+  </>;
+}
+
 function AdvancedScreen({book,period,privacy,onOpen,onRemove,onPost,onToggle,onSetOptions,onSettings}: {
   book:Book;period:string;privacy:boolean;
   onOpen:(action:string,selected?:string)=>void;
@@ -405,16 +433,12 @@ function AdvancedScreen({book,period,privacy,onOpen,onRemove,onPost,onToggle,onS
     {due.length>0 && <Pressable onPress={onPost} style={{borderRadius:16,backgroundColor:'#EBE8FF',padding:15,marginBottom:15}}><M color={PURPLE} weight="800" size={12}>▦ {due.length} transaksi rutin jatuh tempo. Ketuk untuk mencatat.</M></Pressable>}
     <View style={{flexDirection:'row',flexWrap:'wrap',justifyContent:'space-between',rowGap:10,marginBottom:22}}>
       {quick('Transfer','wallet','Antar-dompet',()=>onOpen('transfer'))}
-      {quick('Target','target','Tabungan',()=>onOpen('goal'))}
       {quick('Berulang','calendar','Bulanan',()=>onOpen('recurring'))}
       {quick('Utang','arrow-up','Piutang',()=>onOpen('debt'))}
       {quick('Cek saldo','check','Rekonsiliasi',()=>onOpen('reconcile'))}
     </View>
     <Heading title="Transfer bulan ini" action="Transfer" onAction={()=>onOpen('transfer')}/>
     <Panel style={{paddingVertical:5,marginBottom:15}}>{(data.transfers as any[]).filter((t:any)=>t.date.startsWith(period)).length===0?<Empty text="Belum ada transfer pada bulan ini"/>:(data.transfers as any[]).filter((t:any)=>t.date.startsWith(period)).slice(0,12).map((t:any)=>row(`${book.accounts.find(a=>a.id===t.from)?.label||'?'} → ${book.accounts.find(a=>a.id===t.to)?.label||'?'}`,`${t.date} · ${fmt(t.amount)}${t.note?' · '+t.note:''}`,<>{action('Edit',()=>onOpen('transferEdit',t.id))}{action('×',()=>onRemove('transfer',t.id),true)}</>,t.id))}</Panel>
-    <Heading title="Target tabungan" action="Tambah" onAction={()=>onOpen('goal')}/>
-    <Panel style={{paddingVertical:5,marginBottom:15}}>{!(data.goals as any[]).length?<Empty text="Belum ada target tabungan"/>:(data.goals as any[]).map((g:any)=><View key={g.id} style={{paddingVertical:13,gap:8,borderBottomWidth:1,borderBottomColor:'#F1F1F7'}}><M size={13} weight="800">{g.name}</M><M size={11} color={MUTED}>{fmt(Adv.goalBalance(book,g.id))} / {fmt(g.target)}{g.deadline?' · '+g.deadline:''}</M><Progress progress={Adv.goalBalance(book,g.id)/g.target}/><View style={{flexDirection:'row',gap:6,flexWrap:'wrap'}}>{action('Edit',()=>onOpen('goalEdit',g.id))}{action('+ Alokasi',()=>onOpen('allocate',g.id))}{action('− Lepas',()=>onOpen('release',g.id))}{action('Hapus',()=>onRemove('goal',g.id),true)}</View></View>) }
-      <M color={MUTED} size={10} style={{lineHeight:16,marginVertical:10}}>Alokasi hanya memisahkan saldo secara virtual. Bukan transfer dan tidak mengubah saldo total.</M></Panel>
     <Heading title="Transaksi berulang" action="Tambah" onAction={()=>onOpen('recurring')}/>
     <Panel style={{paddingVertical:5,marginBottom:15}}>{!(data.recurring as any[]).length?<Empty text="Belum ada jadwal berulang"/>:(data.recurring as any[]).map((r:any)=>row(r.name,`${fmt(r.amount)} · Setiap tanggal ${Number(r.startDate.slice(8))} · ${r.active?'Aktif':'Jeda'}`,<>{action('Edit',()=>onOpen('recurringEdit',r.id))}{action(r.active?'Jeda':'Aktifkan',()=>onToggle('recurring',r.id))}{action('×',()=>onRemove('recurring',r.id),true)}</>,r.id))}{action('✓ Catat yang jatuh tempo',onPost)}<M size={10} color={MUTED} style={{marginTop:10,lineHeight:16}}>Pencatatan hanya berjalan saat tombol ditekan. Tidak ada background scheduler.</M></Panel>
     <Heading title="Utang dan piutang" action="Tambah" onAction={()=>onOpen('debt')}/>
@@ -436,6 +460,16 @@ function AppCore() {
   const [privacy, setPrivacy] = useState(false);
   // Independent of the in-app eye icon; widget is visible on the home screen.
   const [widgetAmountsVisible, setWidgetAmountsVisible] = useState(true);
+  // Mirror home-screen eye changes while this app process is active.
+  // The widget itself handles toggling when Moneo is closed.
+  useEffect(() => {
+    const subscription = addUserInteractionListener(event => {
+      if (event.source === 'AnaFinanceWidget' && event.target === 'moneo-toggle-amounts') {
+        setWidgetAmountsVisible(value => !value);
+      }
+    });
+    return () => subscription.remove();
+  }, []);
   const [budgetFilter, setBudgetFilter] = useState<Kind>('expense');
   const [activityFilter, setActivityFilter] = useState<KindFilter>('all');
   const [search, setSearch] = useState('');
@@ -708,7 +742,7 @@ function AppCore() {
     try {setBook(Adv.toggleRecurring(book,id));}catch(e){Alert.alert('Gagal',(e as Error).message)}
   }
   const categoryOptions = useMemo(() => book.categories.filter(c => c.kind === addKind), [book.categories, addKind]);
-  const screenTitle = tab === 'home' ? 'Beranda' : tab === 'budget' ? 'Anggaran' : tab === 'activity' ? 'Aktivitas' : tab === 'advanced' ? 'Keuangan' : 'Analisis';
+  const screenTitle = tab === 'home' ? 'Beranda' : tab === 'budget' ? 'Anggaran' : tab === 'activity' ? 'Aktivitas' : tab === 'advanced' ? 'Keuangan' : tab === 'goals' ? 'Target' : 'Analisis';
   return <SafeAreaView style={{ flex: 1, backgroundColor: BG }} edges={['top','bottom']}>
     <StatusBar barStyle="dark-content" backgroundColor={BG} />
     <View style={{ flex: 1, width: '100%', maxWidth: 560, alignSelf: 'center' }}>
@@ -725,9 +759,10 @@ function AppCore() {
         {tab === 'home' ? <HomeScreen book={book} period={period} privacy={privacy} setPrivacy={setPrivacy} setTab={setTab} openAdd={openAdd} openAccounts={() => setShowAccounts(true)} width={width} /> :
           tab === 'budget' ? <BudgetScreen book={book} period={period} filter={budgetFilter} setFilter={setBudgetFilter} openEdit={openEdit} openCreate={openCreateCategory} copyPrevious={copyPrevious} privacy={privacy} /> :
           tab === 'activity' ? <ActivityScreen book={book} period={period} privacy={privacy} filter={activityFilter} setFilter={setActivityFilter} search={search} setSearch={setSearch} onDelete={deleteEntry} onEdit={editTransaction} selectedDate={selectedDate} setSelectedDate={setSelectedDate} openCalendar={() => {setCalendarPeriod(period);setShowDayPicker(true)}} goToDay={goToDay} /> :
+          tab === 'goals' ? <GoalsScreen book={book} privacy={privacy} onOpen={advancedOpen} onRemove={advancedRemove} /> :
           tab === 'advanced' ? <AdvancedScreen book={book} period={period} privacy={privacy} onOpen={advancedOpen} onRemove={advancedRemove} onPost={advancedPost} onToggle={advancedSwitch} onSetOptions={(options)=>{if(canWrite())try{setBook(Adv.setOptions(book,options))}catch(e){Alert.alert('Pengaturan',(e as Error).message)}}} onSettings={()=>setShowSettings(true)} /> :
           <InsightsScreen book={book} period={period} privacy={privacy} width={width} />}
-        <View style={{alignItems: 'center', paddingTop: 24, paddingBottom: 10}} accessibilityLabel="Copyright Na"><M size={10} color="#A3A8BA" weight="700">© 2026 Na · Moneo v1.1.11</M></View>
+        <View style={{alignItems: 'center', paddingTop: 24, paddingBottom: 10}} accessibilityLabel="Copyright Na"><M size={10} color="#A3A8BA" weight="700">© 2026 Na · Moneo v1.1.14</M></View>
       </ScrollView>
       <View style={styles.tabbar} accessibilityLabel="Navigasi utama">
         <Pressable style={styles.tabItem} accessibilityLabel="Beranda" onPress={() => setTab('home')}>
@@ -747,6 +782,9 @@ function AppCore() {
         </Pressable>
         <Pressable style={styles.tabItem} accessibilityLabel="Keuangan" onPress={() => setTab('advanced')}>
           <Ico name="wallet" size={22} color={tab === 'advanced' ? PURPLE : '#A4A9B9'} /><M size={9} weight={tab === 'advanced' ? '800' : '700'} color={tab === 'advanced' ? PURPLE : '#A4A9B9'}>Keuangan</M>
+        </Pressable>
+        <Pressable style={styles.tabItem} accessibilityLabel="Target tabungan" onPress={() => setTab('goals')}>
+          <Ico name="target" size={21} color={tab === 'goals' ? PURPLE : '#A4A9B9'} /><M size={9} weight={tab === 'goals' ? '800' : '700'} color={tab === 'goals' ? PURPLE : '#A4A9B9'}>Target</M>
         </Pressable>
       </View>
     </View>
@@ -942,9 +980,9 @@ const styles = StyleSheet.create({
   legend: { flexDirection: 'row', gap: 6, alignItems: 'center' }, legendDot: { height: 7, width: 7, borderRadius: 4 },
   accountPreview: { borderRadius: 20, padding: 15, backgroundColor: WHITE, ...SHADOW },
   transactionRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, gap: 11, paddingHorizontal: 2, borderBottomWidth: 1, borderBottomColor: '#F4F5F9' },
-  tabbar: { backgroundColor: WHITE, height: 88, paddingTop: 10, paddingBottom: 8, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#F0F1F7' },
+  tabbar: { backgroundColor: WHITE, height: 86, paddingTop: 9, paddingBottom: 7, paddingHorizontal: 3, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#F0F1F7' },
   tabItem: { flex: 1, minWidth: 0, height: 53, alignItems: 'center', justifyContent: 'center', gap: 5 },
-  tabAddInline: { width: 58, height: 58, borderRadius: 20, marginBottom: 8, borderWidth: 4, borderColor: WHITE, backgroundColor: PURPLE, alignItems: 'center', justifyContent: 'center', shadowColor: PURPLE, shadowOpacity: .28, shadowRadius: 12, shadowOffset: { width: 0, height: 5 }, elevation: 7 },
+  tabAddInline: { width: 52, height: 52, borderRadius: 18, marginBottom: 8, borderWidth: 3, borderColor: WHITE, backgroundColor: PURPLE, alignItems: 'center', justifyContent: 'center', shadowColor: PURPLE, shadowOpacity: .28, shadowRadius: 12, shadowOffset: { width: 0, height: 5 }, elevation: 7 },
   segment: { flexDirection: 'row', borderRadius: 15, padding: 5, backgroundColor: '#ECEEF7', gap: 5 },
   segmentButton: { flex: 1, paddingVertical: 11, alignItems: 'center', borderRadius: 11 },
   segmentSelected: { backgroundColor: WHITE, ...SHADOW },

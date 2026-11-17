@@ -1,4 +1,4 @@
-# Moneo v1.1.11 — Build Android + iPhone Native
+# Moneo v1.1.14 — Build Android + iPhone Native
 © 2026 Na. Data tetap lokal di perangkat.
 
 ## Sudah dibuat apa?

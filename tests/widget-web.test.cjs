@@ -4,7 +4,7 @@ const vm=require('node:vm');
 const path=require('node:path');
 for(const rel of ['site/index.html','mobile/preview/index.html']) {
   const html=fs.readFileSync(path.join(__dirname,'../../',rel),'utf8');
-  assert.match(html,/Moneo v1\.1\.11/);
+  assert.match(html,/Moneo v1\.1\.14/);
   assert.match(html,/class="moneo-brand-icon"/);
   assert(!html.includes('ana-widget-preview'));
   assert(!html.includes('function widgetPreview('));

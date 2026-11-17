@@ -1,4 +1,4 @@
-# Moneo v1.1.11 — Source React Native + Expo (Offline Advanced)
+# Moneo v1.1.14 — Source React Native + Expo (Offline Advanced)
 
 © 2026 Na. All rights reserved.
 
@@ -23,6 +23,8 @@ node tests/advanced-web.test.cjs
 `src/advanced.js` dipakai oleh aplikasi native dan website. `src/finance.ts` menghitung saldo termasuk transfer, pencairan/pelunasan utang, dan penyesuaian saldo. `src/manage.ts` mencegah penghapusan rekening/kategori yang masih digunakan. `src/ledger.ts` mengelola pencatatan/transaksi dan format backup.
 
 ## Widget maskot untuk layar utama (Android dan iPhone)
+
+**BARU v1.1.14:** Tombol mata langsung di widget (Android; iPhone dengan iOS 17+). Tutup/tampilkan saldo total, pemasukan, dan pengeluaran tanpa mengubah transaksi. Angka asli tetap ada pada snapshot agar bisa dibuka kembali; ini privasi tampilan, bukan enkripsi. Preferensi Android di widget saat aplikasi tertutup belum tentu tercermin pada Pengaturan saat aplikasi dibuka ulang.
 
 Source widget asli ada di `widgets/AnaFinanceWidget.android.tsx` dan `.ios.tsx`. Aset wajah ada di `assets/widget`. Paket mencakup konfigurasi plugin resmi `expo-widgets` untuk Android dan iOS, serta publisher `src/publishWidget.ts` yang menyimpan foto di direktori berbagi widget dan memperbarui ringkasan **setelah AsyncStorage berhasil menyimpan data**. **Tidak ada server/API/AI berbayar.**
 
@@ -53,4 +55,4 @@ Buka tab **Keuangan** pada navigasi bawah. Pintasan Backup duplikat di Keuangan 
 
 Kelemahan yang tersisa: AsyncStorage tidak terenkripsi, tidak tersedia PIN/biometrik, transaksi rutin tidak otomatis berjalan saat app ditutup, tidak ada notifikasi OS otomatis, bunga pinjaman dicatat manual, ekspor/impor CSV tersedia di web saja, dan tidak ada impor `.xlsb` asli. Jangan simpan rahasia perbankan di aplikasi sebelum keamanan tambahan dibuat. Pengujian build native dan perangkat fisik **belum dilakukan**.
 
-Versi aplikasi **1.1.11**, copyright **© 2026 Na**.
+Versi aplikasi **1.1.14**, copyright **© 2026 Na**.

@@ -3,7 +3,7 @@
     "name": "Moneo",
     "slug": "moneo",
     "scheme": "moneo",
-    "version": "1.1.11",
+    "version": "1.1.14",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "backgroundColor": "#F6F7FB",
@@ -13,7 +13,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "versionCode": 11
+      "versionCode": 14
     },
     "ios": {
       "bundleIdentifier": "com.anabudget.app",
@@ -21,7 +21,7 @@
       "infoPlist": {
         "NSHumanReadableCopyright": "© 2026 Na"
       },
-      "buildNumber": "11"
+      "buildNumber": "14"
     },
     "web": {
       "name": "Moneo"
@@ -48,8 +48,8 @@
           "widgets": [
             {
               "name": "AnaFinanceWidget",
-              "displayName": "Moneo — Widget Saldo",
-              "description": "Widget Moneo dengan maskot dinamis, saldo total, pemasukan, dan pengeluaran.",
+              "displayName": "Moneo — Saldo & Bibble",
+              "description": "Saldo, pemasukan, pengeluaran, maskot transparan dan status keuangan.",
               "ios": {
                 "supportedFamilies": [
                   "systemMedium",

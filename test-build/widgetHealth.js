@@ -22,6 +22,7 @@ function calculateWidgetSnapshot(book, period, showAmounts = true) {
     const mask = (value) => showAmounts ? (0, finance_1.amountText)(value) : 'Rp ••••••';
     return {
         balanceText: mask(balance), incomeText: mask(income), expenseText: mask(expense),
+        balanceFullText: (0, finance_1.amountText)(balance), incomeFullText: (0, finance_1.amountText)(income), expenseFullText: (0, finance_1.amountText)(expense),
         ratio, percent: Math.round(ratio * 100), mood, label, period,
         privateMode: !showAmounts, mascotUri: '',
     };
