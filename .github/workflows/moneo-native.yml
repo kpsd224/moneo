@@ -1,0 +1,147 @@
+name: Moneo - Buat APK Android atau iPhone
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Pilih perangkat yang mau dibuat'
+        required: true
+        type: choice
+        default: android
+        options:
+          - android
+          - ios
+
+permissions:
+  contents: read
+
+jobs:
+  android-apk:
+    if: ${{ inputs.platform == 'android' }}
+    name: Buat APK Android
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Ambil kode Moneo
+        uses: actions/checkout@v4
+
+      - name: Temukan folder aplikasi
+        shell: bash
+        run: |
+          if [ -f mobile/package.json ] && [ -f mobile/app.json ]; then
+            echo "APP_DIR=mobile" >> "$GITHUB_ENV"
+          elif [ -f package.json ] && [ -f app.json ]; then
+            echo "APP_DIR=." >> "$GITHUB_ENV"
+          else
+            echo "Tidak ditemukan mobile/package.json atau package.json di root. Upload source aplikasi, bukan ZIP saja."
+            exit 1
+          fi
+
+      - name: Pasang Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Pasang Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Pasang Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Pasang paket aplikasi
+        shell: bash
+        run: |
+          cd "$APP_DIR"
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Siapkan proyek Android native
+        shell: bash
+        env:
+          CI: '1'
+        run: |
+          cd "$APP_DIR"
+          npx expo prebuild --platform android --non-interactive --clean
+
+      - name: Buat APK yang dapat dipasang
+        shell: bash
+        run: |
+          cd "$APP_DIR/android"
+          chmod +x gradlew
+          ./gradlew :app:assembleRelease --no-daemon
+
+      - name: Simpan APK untuk diunduh di GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: Moneo-Android-APK
+          path: ${{ env.APP_DIR }}/android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  ios-iphone:
+    if: ${{ inputs.platform == 'ios' }}
+    name: Kirim Build iPhone ke Expo (perlu Apple Developer)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Ambil kode Moneo
+        uses: actions/checkout@v4
+
+      - name: Temukan folder aplikasi
+        shell: bash
+        run: |
+          if [ -f mobile/package.json ] && [ -f mobile/app.json ]; then
+            echo "APP_DIR=mobile" >> "$GITHUB_ENV"
+          elif [ -f package.json ] && [ -f app.json ]; then
+            echo "APP_DIR=." >> "$GITHUB_ENV"
+          else
+            echo "Source aplikasi tidak ditemukan. Periksa folder mobile."
+            exit 1
+          fi
+
+      - name: Periksa token Expo
+        shell: bash
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "Belum ada EXPO_TOKEN. Buat token di expo.dev/accounts/.../settings/access-tokens, lalu simpan sebagai GitHub Actions repository secret bernama EXPO_TOKEN."
+            exit 1
+          fi
+
+      - name: Pasang Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Hubungkan Expo dan GitHub Actions
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+          packager: npm
+
+      - name: Pasang paket aplikasi
+        shell: bash
+        run: |
+          cd "$APP_DIR"
+          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+
+      - name: Hubungkan proyek ke akun Expo
+        shell: bash
+        run: |
+          cd "$APP_DIR"
+          eas init --non-interactive --force
+
+      - name: Minta build iPhone
+        shell: bash
+        run: |
+          cd "$APP_DIR"
+          eas build --platform ios --profile ios-testflight --non-interactive --no-wait
+          echo "Lihat hasilnya di https://expo.dev/ pada bagian Builds."
