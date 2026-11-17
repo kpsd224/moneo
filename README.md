@@ -1,4 +1,4 @@
-# Moneo v1.1.10 — Source React Native + Expo (Offline Advanced)
+# Moneo v1.1.11 — Source React Native + Expo (Offline Advanced)
 
 © 2026 Na. All rights reserved.
 
@@ -53,4 +53,4 @@ Buka tab **Keuangan** pada navigasi bawah. Pintasan Backup duplikat di Keuangan 
 
 Kelemahan yang tersisa: AsyncStorage tidak terenkripsi, tidak tersedia PIN/biometrik, transaksi rutin tidak otomatis berjalan saat app ditutup, tidak ada notifikasi OS otomatis, bunga pinjaman dicatat manual, ekspor/impor CSV tersedia di web saja, dan tidak ada impor `.xlsb` asli. Jangan simpan rahasia perbankan di aplikasi sebelum keamanan tambahan dibuat. Pengujian build native dan perangkat fisik **belum dilakukan**.
 
-Versi aplikasi **1.1.10**, copyright **© 2026 Na**.
+Versi aplikasi **1.1.11**, copyright **© 2026 Na**.

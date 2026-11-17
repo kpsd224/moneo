@@ -2,7 +2,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const base=path.join(__dirname,'../../');
 const app=JSON.parse(fs.readFileSync(path.join(base,'mobile/app.json'),'utf8')).expo;
 const manifest=JSON.parse(fs.readFileSync(path.join(base,'site/manifest.webmanifest'),'utf8'));
-assert.equal(app.name,'Moneo'); assert.equal(app.version,'1.1.10');
+assert.equal(app.name,'Moneo'); assert.equal(app.version,'1.1.11');
 assert.equal(app.android.package,'com.anabudget.app'); // do not reset user data on Android update
 assert.equal(app.ios.bundleIdentifier,'com.anabudget.app');
 assert.equal(manifest.short_name,'Moneo');

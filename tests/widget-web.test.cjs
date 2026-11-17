@@ -4,7 +4,7 @@ const vm=require('node:vm');
 const path=require('node:path');
 for(const rel of ['site/index.html','mobile/preview/index.html']) {
   const html=fs.readFileSync(path.join(__dirname,'../../',rel),'utf8');
-  assert.match(html,/Moneo v1\.1\.10/);
+  assert.match(html,/Moneo v1\.1\.11/);
   assert.match(html,/class="moneo-brand-icon"/);
   assert(!html.includes('ana-widget-preview'));
   assert(!html.includes('function widgetPreview('));
@@ -28,6 +28,6 @@ const android=fs.readFileSync(path.join(__dirname,'../widgets/AnaFinanceWidget.a
 const ios=fs.readFileSync(path.join(__dirname,'../widgets/AnaFinanceWidget.ios.tsx'),'utf8');
 assert(android.includes('Saldo Total') && android.includes('Pemasukan') && android.includes('Pengeluaran'));
 assert(ios.includes('Saldo Total') && ios.includes('Pemasukan') && ios.includes('Pengeluaran'));
-assert(android.includes("const source = props.mascotUri"), 'Native Android widget retains image fallback');
-assert(ios.includes('localMascot'), 'Native iOS widget retains mascot image variants');
+assert(android.includes("source={{uri:props.mascotUri}}"), 'Android widget uses shared image URI');
+assert(ios.includes('uiImage={props.mascotUri}'), 'Native iOS widget uses shared image URI');
 console.log('PASS: Moneo brand, no in-app widget preview, native widgets retained');

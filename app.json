@@ -3,7 +3,7 @@
     "name": "Moneo",
     "slug": "moneo",
     "scheme": "moneo",
-    "version": "1.1.10",
+    "version": "1.1.11",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "backgroundColor": "#F6F7FB",
@@ -13,7 +13,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "versionCode": 10
+      "versionCode": 11
     },
     "ios": {
       "bundleIdentifier": "com.anabudget.app",
@@ -21,7 +21,7 @@
       "infoPlist": {
         "NSHumanReadableCopyright": "© 2026 Na"
       },
-      "buildNumber": "10"
+      "buildNumber": "11"
     },
     "web": {
       "name": "Moneo"

@@ -727,7 +727,7 @@ function AppCore() {
           tab === 'activity' ? <ActivityScreen book={book} period={period} privacy={privacy} filter={activityFilter} setFilter={setActivityFilter} search={search} setSearch={setSearch} onDelete={deleteEntry} onEdit={editTransaction} selectedDate={selectedDate} setSelectedDate={setSelectedDate} openCalendar={() => {setCalendarPeriod(period);setShowDayPicker(true)}} goToDay={goToDay} /> :
           tab === 'advanced' ? <AdvancedScreen book={book} period={period} privacy={privacy} onOpen={advancedOpen} onRemove={advancedRemove} onPost={advancedPost} onToggle={advancedSwitch} onSetOptions={(options)=>{if(canWrite())try{setBook(Adv.setOptions(book,options))}catch(e){Alert.alert('Pengaturan',(e as Error).message)}}} onSettings={()=>setShowSettings(true)} /> :
           <InsightsScreen book={book} period={period} privacy={privacy} width={width} />}
-        <View style={{alignItems: 'center', paddingTop: 24, paddingBottom: 10}} accessibilityLabel="Copyright Na"><M size={10} color="#A3A8BA" weight="700">© 2026 Na · Moneo v1.1.10</M></View>
+        <View style={{alignItems: 'center', paddingTop: 24, paddingBottom: 10}} accessibilityLabel="Copyright Na"><M size={10} color="#A3A8BA" weight="700">© 2026 Na · Moneo v1.1.11</M></View>
       </ScrollView>
       <View style={styles.tabbar} accessibilityLabel="Navigasi utama">
         <Pressable style={styles.tabItem} accessibilityLabel="Beranda" onPress={() => setTab('home')}>

@@ -19,7 +19,7 @@ async function mascotUri(mood: keyof typeof files): Promise<string> {
   const saved = destinationCache.get(mood);
   if (saved) return saved;
   if (!widgetsDirectory) return '';
-  const destination = new File(widgetsDirectory, `moneo-widget-${mood}-119.jpg`);
+  const destination = new File(widgetsDirectory, `moneo-widget-${mood}-1111.jpg`);
   if (!destination.exists) {
     const source = await Asset.fromModule(files[mood]).downloadAsync();
     if (!source.localUri) return '';
@@ -34,7 +34,10 @@ export async function publishWidget(book: Book, showAmounts = true): Promise<voi
   if (!widgetsDirectory) return;
   const request = ++lastRequested;
   const snapshot = calculateWidgetSnapshot(book, monthNow(), showAmounts);
-  const uri = await mascotUri(snapshot.mood);
-  if (request !== lastRequested) return; // Never let an earlier async publish overwrite newer balances.
+  // Keep balance/status visible even if a mascot file cannot be copied.
+  let uri = '';
+  try { uri = await mascotUri(snapshot.mood); }
+  catch (error) { console.warn('Gagal menyalin gambar maskot:', error); }
+  if (request !== lastRequested) return;
   AnaFinanceWidget.updateSnapshot({...snapshot, mascotUri:uri});
 }

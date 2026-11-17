@@ -64,4 +64,4 @@ assert.equal(vm.runInContext('period',ctx),native.currentPeriod());
 assert(store['moneo-before-sample-cleanup-v1110'],'Safety copy should exist before mutation');
 assert.equal(JSON.parse(store['moneo-before-sample-cleanup-v1110']).data.transactions.length,4);
 assert.equal(JSON.parse(store['ana-budget-preview-v1']).data.transactions.length,1);
-console.log('PASS v1.1.10: fresh zero, 2025 sample clean, idempotent, edited row safe, untouched targets clean, web local backup, user entries retained, current period');
+console.log('PASS v1.1.11: fresh zero, 2025 sample clean, idempotent, edited row safe, untouched targets clean, web local backup, user entries retained, current period');
