@@ -49,7 +49,25 @@ jobs:
           java-version: '17'
 
       - name: Pasang Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+        with:
+          # Setup SDK saja; persetujuan lisensi dilakukan dengan perintah di bawah.
+          accept-android-sdk-licenses: 'false'
+          packages: ''
+
+      - name: Setujui lisensi Android SDK secara otomatis
+        shell: bash
+        run: |
+          # sdkmanager tersedia setelah langkah setup-android.
+          # Jangan aktifkan pipefail di sini: `yes` menerima SIGPIPE setelah selesai.
+          set +o pipefail
+          yes | sdkmanager --licenses > /dev/null
+          set -o pipefail
+          echo "Persetujuan lisensi Android SDK selesai."
+
+      - name: Pasang platform tools Android
+        shell: bash
+        run: sdkmanager --install 'platform-tools'
 
       - name: Pasang paket aplikasi
         shell: bash
