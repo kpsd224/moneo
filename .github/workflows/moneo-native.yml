@@ -79,6 +79,12 @@ jobs:
             npm install --no-audit --no-fund
           fi
 
+      - name: Periksa aksi buka aplikasi dari widget
+        shell: bash
+        run: |
+          cd "$APP_DIR"
+          npm run test:widget-build
+
       - name: Siapkan proyek Android native
         shell: bash
         env:
