@@ -1,0 +1,17 @@
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync(path.join(__dirname,'../../site/index.html'),'utf8');
+const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+const map=new Map(),storage=new Map(),cls={toggle(){},add(){},remove(){}};
+const document={getElementById(id){if(!map.has(id))map.set(id,{innerHTML:'',textContent:'',value:'',classList:cls,style:{},click(){}});return map.get(id)},querySelectorAll(){return []}};
+const sandbox={document,console,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},Date,Math,confirm:()=>true,alert:()=>{},setTimeout:()=>{}};
+vm.createContext(sandbox);scripts.slice(0,2).forEach(s=>vm.runInContext(s,sandbox));
+vm.runInContext("tab('goals')",sandbox);
+assert(map.get('page').innerHTML.includes('Tambah target tabungan'));
+document.getElementById('aname').value='Dana Darurat';document.getElementById('atarget').value='1000000';document.getElementById('adue').value='';
+vm.runInContext('saveGoal()',sandbox);
+vm.runInContext("tab('goals')",sandbox);
+assert(map.get('page').innerHTML.includes('Dana Darurat'));
+assert.equal(vm.runInContext('data.advanced.goals.length',sandbox),1);
+assert.equal(vm.runInContext('data.transactions.length',sandbox),0);
+assert(!vm.runInContext('advancedPage().includes("Target tabungan</")',sandbox));
+console.log('PASS: seventh Target tab creates & renders goals with existing advanced store, without transactions or duplicate finance section');
