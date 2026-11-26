@@ -79,11 +79,12 @@ jobs:
             npm install --no-audit --no-fund
           fi
 
-      - name: Periksa aksi buka aplikasi dari widget
+      - name: Periksa versi dan source aplikasi
         shell: bash
         run: |
           cd "$APP_DIR"
-          npm run test:widget-build
+          node -e "const fs=require('node:fs');const app=require('./app.json').expo;const pkg=require('./package.json');const lock=require('./package-lock.json');if(app.version!==pkg.version||app.version!==lock.version)throw Error('Versi app, package, dan lock tidak sama');fs.appendFileSync(process.env.GITHUB_ENV,'APP_VERSION='+app.version+'\n');console.log('Moneo v'+app.version+' · Android build '+app.android.versionCode)"
+          npm test
 
       - name: Siapkan proyek Android native
         shell: bash
@@ -103,7 +104,7 @@ jobs:
       - name: Simpan APK untuk diunduh di GitHub
         uses: actions/upload-artifact@v4
         with:
-          name: Moneo-Android-APK
+          name: Moneo-Android-v${{ env.APP_VERSION }}-APK
           path: ${{ env.APP_DIR }}/android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 14
@@ -156,6 +157,13 @@ jobs:
         run: |
           cd "$APP_DIR"
           if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+
+      - name: Periksa versi dan source aplikasi
+        shell: bash
+        run: |
+          cd "$APP_DIR"
+          node -e "const app=require('./app.json').expo;const pkg=require('./package.json');const lock=require('./package-lock.json');if(app.version!==pkg.version||app.version!==lock.version)throw Error('Versi app, package, dan lock tidak sama');console.log('Moneo v'+app.version+' · iPhone build '+app.ios.buildNumber)"
+          npm test
 
       - name: Hubungkan proyek ke akun Expo
         shell: bash
